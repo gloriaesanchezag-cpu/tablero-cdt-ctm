@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero CDT · CTM 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f2;color:#1a1a1a;padding:1.75rem 1.5rem;font-size:13px}
+.w{max-width:1160px;margin:0 auto}
+
+/* ── Header ── */
+.hdr{display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #ddd}
+.logo{width:44px;height:44px;border-radius:9px;background:#1E7A3E;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:700;flex-shrink:0;letter-spacing:-1px}
+.hdr-title{font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:3px}
+.hdr-sub{font-size:11px;color:#999}
+.hdr-sub span{background:#FFFDE7;color:#5F4F00;border:0.5px solid #F9A825;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px}
+
+/* ── Status bar ── */
+.sbar{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:#fff;border:0.5px solid #ddd;border-radius:8px;margin-bottom:1.25rem}
+.sdot{width:8px;height:8px;border-radius:50%;background:#ccc;display:inline-block;margin-right:7px;transition:all .3s}
+.sdot.ok{background:#639922;box-shadow:0 0 0 2px #EAF3DE}
+.sdot.err{background:#E24B4A;box-shadow:0 0 0 2px #FCEBEB}
+.sdot.loading{background:#EF9F27;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sbtn{padding:4px 12px;border:0.5px solid #ccc;border-radius:99px;background:#fff;font-size:10px;cursor:pointer;color:#666}
+.sbtn:hover{background:#f0f0ee}
+
+/* ── Section label ── */
+.sec{font-size:10px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+
+/* ── Metrics ── */
+.mets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:1.25rem}
+.met{background:#ececea;border-radius:8px;padding:12px 14px}
+.met-v{font-size:24px;font-weight:600;line-height:1.1}
+.met-l{font-size:10px;color:#777;margin-top:3px;display:flex;align-items:center;gap:4px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── Variable cards ── */
+.vcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:1.25rem}
+.vc{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:12px 14px}
+.vc-icon{font-size:16px;margin-bottom:5px}
+.vc-name{font-size:11px;font-weight:600;color:#1a1a1a;margin-bottom:1px}
+.vc-cnt{font-size:10px;color:#999;margin-bottom:8px}
+.pbw{height:5px;background:#e8e8e6;border-radius:99px;overflow:hidden;margin-bottom:4px}
+.pb{height:100%;border-radius:99px;transition:width .5s}
+.pbl{font-size:10px;color:#aaa}
+
+/* ── Timeline ── */
+.tl{margin-bottom:1.25rem}
+.tly{display:flex;justify-content:space-between;font-size:10px;color:#bbb;padding:0 0 3px 92px}
+.tlr{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tll{font-size:10px;color:#777;width:88px;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlt{flex:1;height:12px;background:#e8e8e6;border-radius:6px;position:relative;overflow:hidden}
+.tlb{position:absolute;height:100%;border-radius:6px;top:0;display:flex;align-items:center;padding-left:5px;font-size:9px;color:rgba(255,255,255,.9);gap:3px;white-space:nowrap;overflow:hidden;transition:background .4s}
+.tld{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);flex-shrink:0}
+
+/* ── Filters ── */
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.1rem;align-items:center}
+.fl{font-size:10px;color:#bbb;margin-right:2px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:99px;border:0.5px solid #ccc;font-size:10px;cursor:pointer;color:#777;background:#fff;transition:all .12s}
+.pill:hover{background:#f0f0ee}
+.pa{color:#1a1a1a;border-color:#888;font-weight:600}
+.pe{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.pp{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.pi{background:#EEEDFE;color:#3C3489;border-color:#7F77DD}
+.pd{background:#E1F5EE;color:#085041;border-color:#1D9E75}
+.pm{background:#FAECE7;color:#712B13;border-color:#D85A30}
+
+/* ── Cards grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(318px,1fr));gap:11px}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:10px;overflow:hidden;transition:border-color .12s}
+.card:hover{border-color:#bbb}
+.card-top{padding:12px 14px 9px}
+.card-n{font-size:10px;color:#bbb;margin-bottom:2px;font-weight:600}
+.card-name{font-size:13px;font-weight:600;color:#1a1a1a;line-height:1.4;margin-bottom:7px}
+.badges{display:flex;flex-wrap:wrap;gap:4px}
+.badge{font-size:9px;padding:2px 7px;border-radius:5px;font-weight:600;white-space:nowrap}
+.b-enc{background:#EAF3DE;color:#27500A}
+.b-pre{background:#FAEEDA;color:#633806}
+.b-inv{background:#EEEDFE;color:#3C3489}
+.b-dis{background:#E1F5EE;color:#085041}
+.b-mad{background:#FAECE7;color:#712B13}
+.b-yr{background:#ececea;color:#888}
+
+/* ── Semaphore ── */
+.semrow{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-top:0.5px solid #eee;border-bottom:0.5px solid #eee;background:#fafaf8}
+.sembtns{display:flex;gap:4px}
+.sembtn{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .12s}
+.sembtn:hover{transform:scale(1.15)}
+.sembtn.sel{border-color:#222}
+.sn{background:#D3D1C7}.si{background:#EF9F27}.sc{background:#639922}.sr{background:#E24B4A}
+.smbadge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600}
+.sn-b{background:#F1EFE8;color:#444}.si-b{background:#FAEEDA;color:#633806}
+.sc-b{background:#EAF3DE;color:#27500A}.sr-b{background:#FCEBEB;color:#791F1F}
+.semeta{font-size:9px;color:#bbb;margin-top:2px}
+
+/* ── Card body ── */
+.chead{padding:7px 14px;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;background:#fafaf8;border-top:0.5px solid #eee}
+.chead-l{font-size:10px;color:#999}
+.chev{font-size:9px;transition:transform .18s;color:#bbb}
+.cbody{display:none;border-top:0.5px solid #eee}
+.cbody.open{display:block}
+.section{padding:10px 14px 0}
+.slbl{font-size:9px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.obj{padding:7px 10px;background:#f5f5f3;border-radius:0 8px 8px 0;border-left:3px solid #ccc;font-size:11px;color:#1a1a1a;line-height:1.65}
+.ul{list-style:none;margin-top:3px}
+.ul li{font-size:11px;color:#666;padding:2px 0 2px 12px;position:relative;line-height:1.5}
+.ul.dot li::before{content:"";position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:#ccc}
+.ul.arr li::before{content:"→";position:absolute;left:0;color:#ccc;font-size:9px;top:3px}
+.ae-table{width:100%;border-collapse:collapse;margin-top:4px;table-layout:fixed}
+.ae-table th{font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em;padding:5px 10px 5px;text-align:left;border-bottom:1px solid #e8e8e6;width:50%}
+.ae-table th:first-child{border-right:1px solid #e8e8e6;background:#f9f9f7}
+.ae-table th:last-child{background:#f5f5f3}
+.ae-table td{font-size:11px;color:#555;padding:5px 10px;vertical-align:top;line-height:1.55;border-bottom:0.5px solid #f0f0ee}
+.ae-table td:first-child{border-right:1px solid #e8e8e6;color:#444}
+.ae-table td:last-child{color:#666}
+.ae-table tr:last-child td{border-bottom:none}
+.ae-table tr:nth-child(even) td:first-child{background:#fafaf9}
+.ae-table tr:nth-child(even) td:last-child{background:#f8f8f6}
+.ae-n{display:inline-block;width:16px;height:16px;border-radius:50%;background:#e8e8e6;color:#888;font-size:9px;font-weight:700;text-align:center;line-height:16px;margin-right:5px;flex-shrink:0}
+.ae-arr{color:#bbb;font-size:10px;margin-right:5px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:3px}
+.mbox{padding:6px 9px;background:#f5f5f3;border-radius:7px}
+.mkey{font-size:9px;color:#bbb;margin-bottom:1px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.mval{font-size:11px;color:#1a1a1a;line-height:1.5}
+
+/* ── Editable fields (yellow) ── */
+.edit-zone{padding:10px 14px 14px;background:#FFFEF5;border-top:0.5px dashed #F9A825}
+.edit-hdr{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.edit-tag{background:#F9A825;color:#3F2900;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.edit-note{font-size:10px;color:#999}
+.efield{margin-bottom:10px}
+.efield-lbl{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.efield-view{font-size:11px;color:#555;line-height:1.6;padding:7px 10px;background:#fff;border:0.5px solid #eee;border-radius:7px;min-height:32px;cursor:pointer;transition:border .12s;white-space:pre-line}
+.efield-view:hover{border-color:#F9A825}
+.efield-view.empty{color:#ccc;font-style:italic}
+.efield-edit{width:100%;padding:7px 10px;border:1px solid #F9A825;border-radius:7px;font-size:11px;font-family:Arial,sans-serif;background:#fff;resize:vertical;min-height:64px;outline:none;color:#1a1a1a;line-height:1.6}
+.eactions{display:flex;gap:7px;margin-top:5px}
+.esave{padding:5px 14px;background:#1E7A3E;color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer}
+.esave:hover{background:#155a2e}
+.esave:disabled{background:#97C459;cursor:wait}
+.ecancel{padding:5px 10px;background:#fff;color:#888;border:0.5px solid #ccc;border-radius:6px;font-size:10px;cursor:pointer}
+.emeta{font-size:9px;color:#bbb;margin-top:4px}
+
+/* ── Who modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:200;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:22px;width:320px;max-width:90vw}
+.modal-t{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px}
+.modal-s{font-size:11px;color:#999;margin-bottom:14px}
+.modal label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px}
+.modal input{width:100%;padding:8px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:12px;font-family:Arial,sans-serif;margin-bottom:14px;outline:none;color:#1a1a1a}
+.modal input:focus{border-color:#1E7A3E}
+.mbtns{display:flex;gap:8px;justify-content:flex-end}
+.mbtn-ok{padding:7px 18px;background:#1E7A3E;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
+.mbtn-ok:hover{background:#155a2e}
+.mbtn-cn{padding:7px 12px;background:#fff;color:#777;border:0.5px solid #ccc;border-radius:7px;font-size:12px;cursor:pointer}
+
+/* ── Legend ── */
+.legend{margin-top:1.5rem;padding:9px 14px;border:0.5px solid #ddd;border-radius:8px;display:flex;flex-wrap:wrap;gap:13px;align-items:center;background:#fff}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:10px;color:#888}
+.leg-d{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.empty{grid-column:1/-1;text-align:center;padding:2.5rem;color:#bbb;font-size:12px}
+footer{margin-top:2rem;text-align:center;font-size:10px;color:#bbb;padding-top:1rem;border-top:0.5px solid #ddd}
+@media(max-width:600px){.mets{grid-template-columns:1fr 1fr}.vcards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="w">
+
+<!-- Header -->
+<div class="hdr">
+  <div class="logo">S</div>
+  <div style="flex:1">
+    <div class="hdr-title">Centro de Desarrollo Tecnológico (CDT) · CTM — Tablero ejecutivo 2026</div>
+    <div class="hdr-sub">12 macroproyectos · Horizonte 2026–2031
+      <span>★ Indicador y Meta · Avances: editables por los líderes</span>
+    </div>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div class="sbar">
+  <div><span class="sdot loading" id="sdot"></span><span id="stxt" style="font-size:11px;color:#888">Conectando con Google Sheets…</span></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="ssync" style="font-size:10px;color:#bbb"></span>
+    <button class="sbtn" onclick="fetchData()">↻ Actualizar</button>
+  </div>
+</div>
+
+<!-- Metrics -->
+<div class="sec">Indicadores del portafolio</div>
+<div class="mets" id="mets"></div>
+
+<!-- Variable cards -->
+<div class="sec">Resumen por variable estratégica</div>
+<div class="vcards" id="vcards"></div>
+
+<!-- Timeline -->
+<div class="tl">
+  <div class="sec">Horizonte de ejecución</div>
+  <div class="tly" id="tly"></div>
+  <div id="tlrows"></div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <span class="fl">Filtrar:</span>
+  <span class="pill pa" data-f="all" onclick="setF(this,'all')">Todos (12)</span>
+  <span class="pill" data-f="enc" onclick="setF(this,'enc')">En curso</span>
+  <span class="pill" data-f="pre" onclick="setF(this,'pre')">En preparación</span>
+  <span class="pill" data-f="inv" onclick="setF(this,'inv')">Innovación</span>
+  <span class="pill" data-f="dis" onclick="setF(this,'dis')">Diseño y Desarrollo</span>
+  <span class="pill" data-f="mad" onclick="setF(this,'mad')">Madera y materiales</span>
+</div>
+
+<!-- Cards -->
+<div class="grid" id="grid"></div>
+
+<!-- Legend -->
+<div class="legend">
+  <span style="font-size:10px;font-weight:600;color:#888;margin-right:3px">Semáforo:</span>
+  <span class="leg-i"><span class="leg-d" style="background:#D3D1C7"></span>Sin iniciar</span>
+  <span class="leg-i"><span class="leg-d" style="background:#EF9F27"></span>En progreso</span>
+  <span class="leg-i"><span class="leg-d" style="background:#639922"></span>Completado</span>
+  <span class="leg-i"><span class="leg-d" style="background:#E24B4A"></span>En riesgo</span>
+  <span style="margin-left:5px;padding-left:10px;border-left:0.5px solid #ddd"></span>
+  <span class="leg-i"><span style="display:inline-block;width:14px;height:3px;background:#F9A825;border-radius:1px"></span>Campos editables por líderes</span>
+</div>
+
+<footer>SENA · Centro Tecnológico del Mobiliario · Equipo Previos · 2026 — Cambios guardados automáticamente en Google Sheets</footer>
+</div>
+
+<!-- Who-are-you modal -->
+<div class="modal-bg" id="whoModal">
+  <div class="modal">
+    <div class="modal-t">¿Quién realiza este cambio?</div>
+    <div class="modal-s" id="whoSub"></div>
+    <label>Nombre o rol</label>
+    <input type="text" id="whoInput" placeholder="Ej: Líder FABLAB · Carlos Gómez">
+    <div class="mbtns">
+      <button class="mbtn-cn" onclick="cancelWho()">Cancelar</button>
+      <button class="mbtn-ok" onclick="confirmWho()">Confirmar y guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── ⚠️  CONFIGURACIÓN — reemplazar con la URL real del Web App ───────────────
+const SCRIPT_URL ="https://script.google.com/macros/s/AKfycby3UFNRvk7cWV-mCAcWp6Qr9JXGCCL-7h_u5bnA5DAXZX5fF94vL82Hu8WTRw6vevJCiQ/exec";
+// ──────────────────────────────────────────────────────────────────────────────
+
+const YEARS=[2026,2027,2028,2029,2030,2031];
+const YS=2026,YR=5;
+const SS=["n","i","c","r"];
+const SL={n:"Sin iniciar",i:"En progreso",c:"Completado",r:"En riesgo"};
+const SC={n:"#D3D1C7",i:"#EF9F27",c:"#639922",r:"#E24B4A"};
+const SBG={n:"sn",i:"si",c:"sc",r:"sr"};
+const SBDG={n:"sn-b",i:"si-b",c:"sc-b",r:"sr-b"};
+
+const VARS={
+  inv:{label:"Innovación",color:"#7F77DD",bg:"#EEEDFE",text:"#3C3489",icon:"◈"},
+  dis:{label:"Diseño y Desarrollo",color:"#1D9E75",bg:"#E1F5EE",text:"#085041",icon:"◉"},
+  mad:{label:"Madera y materiales",color:"#D85A30",bg:"#FAECE7",text:"#712B13",icon:"◍"},
+};
+
+// Datos estáticos del portafolio
+const DATA=[
+{n:1,v:"inv",ys:2026,ye:2027,st:"enc",
+name:"Diseño estructural y puesta en marcha del CDT – CTM",
+obj:"Definir la arquitectura institucional, técnica y operativa que habilite la creación escalable del CDT e integre sus laboratorios como plataforma de I+D+i, servicios tecnológicos y transferencia de conocimiento.",
+acts:["Identificación de CDT´s referentes en el mundo","Formalizar el alcance, propósito y líneas del CDT","Definir modelo de gobernanza y mapa funcional de laboratorios","Consolidar el portafolio inicial de servicios y productos","Diseñar el modelo de madurez del CDT","Consolidar documento maestro del CDT"],
+ents:["Identificación de CDT´s referentes en el mundo","Modelo de gobernanza del CDT","Mapa funcional de laboratorios","Portafolio consolidado de productos y servicios","Hoja de ruta quinquenal del CDT"],
+resp:"Líder Previos",equipo:"Equipo Previos",
+aliados:"Dirección Regional, Dirección General, MinCiencias, IES, sector productivo"},
+
+{n:2,v:"dis",ys:2026,ye:2028,st:"enc",
+name:"FABLAB 4.0 – Laboratorio de fabricación digital inteligente",
+obj:"Consolidar el FABLAB como plataforma demostrativa de manufactura avanzada, prototipado, servicios tecnológicos e investigación aplicada para el sector.",
+acts:["Realizar diagnóstico técnico de equipos, software y talento","Definir portafolio de productos y servicios","Estandarizar protocolos de operación, seguridad y mantenimiento","Articular ruta de prototipado con validación funcional y ensayos"],
+ents:["Diagnóstico técnico","Portafolio de productos y servicios","Plan de mantenimiento","Hoja de ruta quinquenal"],
+resp:"Líder FABLAB",equipo:"Coord. formación · coord. académico · Líder FABLAB · instructores técnicos · I+D",
+aliados:"Centros SENA · IES · proveedores tecnológicos · empresas del sector"},
+
+{n:3,v:"dis",ys:2026,ye:2028,st:"enc",
+name:"MEDIALAB – Laboratorio de contenidos, experiencias digitales e interactivas",
+obj:"Consolidar el MEDIALAB como plataforma de desarrollo de contenidos estratégicos, multimediales, interactivos y de videojuegos para formación, transferencia y posicionamiento.",
+acts:["Diagnosticar capacidades actuales","Definir líneas priorizadas de producción audiovisual, interactiva y de simulación","Estandarizar flujo de producción","Crear banco inicial de activos reutilizables","Formular pilotos para formación y transferencia tecnológica"],
+ents:["Diagnóstico de capacidades","Definición de líneas de producción audiovisual e interactiva","Hoja de ruta quinquenal"],
+resp:"Líder MEDIALAB",equipo:"Coord. formación · coord. académico · líder MEDIALAB · líder HUB · instructores TIC y multimedia · I+D",
+aliados:"IES · empresas de software · estudios creativos · aliados edtech"},
+
+{n:4,v:"inv",ys:2026,ye:2028,st:"enc",
+name:"SOYLAB – Laboratorio de bienestar, cultura y experiencia humana",
+obj:"Diseñar e instalar un modelo de experimentación aplicada en bienestar, cultura e innovación centrado en la experiencia humana.",
+acts:["Definir alcance del SoyLab","Diseñar modelo metodológico y variables de medición","Formular pilotos","Diseñar instrumentos de evaluación de impacto y adopción"],
+ents:["Modelo de operación del SOYLAB","Diseño de pilotos","Hoja de ruta quinquenal"],
+resp:"Líder SOYLAB",equipo:"Coord. formación · líder bienestar al aprendiz · líder SOYLAB · líder y equipo HUB",
+aliados:"Área de bienestar · expertos en bienestar · laboratorios o unidades afines"},
+
+{n:5,v:"inv",ys:2026,ye:2028,st:"enc",
+name:"HUB – Laboratorio de innovación",
+obj:"Fortalecer el HUB como plataforma de innovación abierta, articulación interáreas y desarrollo de capacidades para la experimentación, formulación y escalamiento de proyectos.",
+acts:["Definir el rol del HUB dentro del CDT","Consolidar banco de retos para el centro y el sector","Definir metodología desde ideación hasta validación","Activar comunidad de práctica","Priorizar retos y proyectos"],
+ents:["Descriptor integrador del HUB con el CDT","Banco de retos","Modelo de innovación revisado","Documentación proyectos ejecutados","Hoja de ruta quinquenal"],
+resp:"Líder HUB",equipo:"Coord. formación · líder y equipo HUB · I+D",
+aliados:"IES · MinCiencias · expertos externos · plataformas de aprendizaje · aliados del sistema de innovación"},
+
+{n:6,v:"mad",ys:2026,ye:2031,st:"enc",
+name:"Laboratorio de ensayos y caracterización – mobiliario, madera y materiales",
+obj:"Convertir el laboratorio de ensayos en una capacidad transversal del CDT para evaluación de desempeño y validación técnica de producto.",
+acts:["Diagnóstico de brechas: infraestructura, equipos, métodos, talento, seguridad y metrología","Definir portafolio priorizado de ensayos","Revisar normas y procedimientos aplicables","Diseñar plan metrológico inicial","Documentar procedimientos y registros críticos"],
+ents:["Diagnóstico de brechas","Plan de cierre de brechas","Hoja de ruta quinquenal"],
+resp:"Líder Lab. de ensayos",equipo:"Coord. formación · coord. académico · Líder FABLAB · instructores técnicos · I+D · líder Lab. ensayos · SIGA",
+aliados:"ONAC · ICONTEC · IES · proveedores de equipos · gremios y empresas del sector"},
+
+{n:7,v:"inv",ys:2026,ye:2031,st:"enc",
+name:"Observatorio tecnológico y sistema de vigilancia estratégica del CTM",
+obj:"Instalar capacidad permanente de vigilancia tecnológica, inteligencia competitiva y monitoreo de oportunidades que fortalezca la toma de decisiones.",
+acts:["Definir focos de vigilancia por laboratorio","Diseñar procedimiento de vigilancia e inteligencia competitiva","Actualizar vigilancia tecnológica y mapa de tendencias","Integrar vigilancia de normas y requisitos técnicos relevantes"],
+ents:["Focos de vigilancia por laboratorio","Mapa de tendencias actualizado"],
+resp:"Vigía equipo Previos",equipo:"Equipo Previos",
+aliados:"IES · observatorios · cámaras · clústeres · centros de pensamiento"},
+
+{n:8,v:"inv",ys:2026,ye:2031,st:"enc",
+name:"MATERMOB (Grupo de investigación)",
+obj:"Consolidar MATERMOB como grupo de investigación aplicada reconocido ante MinCiencias, generando conocimiento útil y transferible sobre materiales, procesos y productos para el sector del mobiliario y la madera, articulado con los laboratorios del CDT y con el sistema SENNOVA.",
+acts:["Formalizar la agenda de investigación con líneas aplicadas al sector","Registrar/actualizar el grupo en GrupLAC (plataforma MinCiencias/ScienTI)","Gestionar el aval institucional ante SENNOVA – Dirección General SENA","Formular al menos un proyecto de investigación aplicada para convocatoria SENNOVA","Articular el grupo con los semilleros de investigación del centro","Definir plan de producción de conocimiento (publicaciones, transferencia, eventos)"],
+ents:["Agenda de investigación aplicada del grupo documentada","Registro activo y actualizado en GrupLAC","Al menos 1 proyecto formulado para convocatoria SENNOVA","Articulación formal con semillero(s) del centro","Hoja de ruta quinquenal del grupo"],
+resp:"Líder grupo de investigación",equipo:"Líder grupo de investigación · instructores-investigadores · semilleristas activos · Dinamizador I+D · coord. académico",
+aliados:"SENNOVA – Dir. General SENA · MinCiencias · IES (UdeA, UPB, EAFIT, ITM) · Clúster de Maderables Antioquia · empresas del sector · Lab. ensayos CTM · Lab. materiales CTM"},
+
+{n:9,v:"mad",ys:2027,ye:2029,st:"pre",
+name:"Laboratorio de materiales sostenibles, biomateriales y caracterización aplicada",
+obj:"Desarrollar una línea de diferenciación tecnológica en materiales avanzados y sostenibles para mobiliario y construcción, articulada con capacidades de ensayo y validación.",
+acts:["(2026 — preparación) Definir el alcance del laboratorio","Identificar materiales y biomateriales según vigilancia","Revisar aplicaciones para mobiliario y madera","Diseñar modelo de banco físico y digital de materiales"],
+ents:["Actividades preparatorias completadas","Proyecto de montaje y puesta en marcha","Hoja de ruta"],
+resp:"Líder Lab. de materiales",equipo:"Coord. formación · coord. académico · Líder FABLAB · I+D · líder Lab. ensayos · líder Lab. materiales",
+aliados:"IES · centros tecnológicos · empresas forestales · fabricantes · proveedores de biocompuestos"},
+
+{n:10,v:"inv",ys:2027,ye:2031,st:"pre",
+name:"Programa de transferencia tecnológica, extensión empresarial y posicionamiento del CDT",
+obj:"Convertir las capacidades instaladas y las soluciones desarrolladas en servicios especializados, transferencia efectiva y reconocimiento sectorial.",
+acts:["(2026 — preparación) Definir enfoque de transferencia","Identificar públicos objetivo","Diseñar primera versión del portafolio transferible por laboratorio","Estructurar narrativa institucional del CDT"],
+ents:["Actividades preparatorias completadas","Análisis grupos de valor institucionales"],
+resp:"Dinamizador I+D",equipo:"Coord. formación · relacionamiento corporativo · coord. académica · equipo Previos · instructores · líderes de laboratorios",
+aliados:"Empresas · gremios · clústeres · IES · entidades públicas"},
+
+{n:11,v:"inv",ys:2026,ye:2031,st:"enc",
+name:"Tecnoacademia",
+obj:"Fortalecer la Tecnoacademia del CTM como plataforma de formación temprana en ciencia, tecnología e innovación, articulada al sector del mobiliario y la madera, promoviendo vocaciones STEM en niñas, niños y jóvenes como semillero de talento innovador para el ecosistema CDT.",
+acts:["Revisar y actualizar las líneas tecnológicas de la Tecnoacademia alineadas al sector y al CDT","Diseñar rutas formativas articuladas con los laboratorios del CDT (FABLAB, MEDIALAB, Lab. materiales)","Fortalecer el semillero de investigación como puente entre Tecnoacademia y MATERMOB","Ejecutar al menos un ciclo formativo semestral con proyectos de investigación e innovación aplicada","Establecer convenios o acuerdos de articulación con instituciones educativas del territorio"],
+ents:["Oferta formativa actualizada y alineada al sector","Ruta de articulación Tecnoacademia–CDT documentada","Ciclo formativo ejecutado con proyectos de aprendices","Hoja de ruta quinquenal"],
+resp:"Dinamizador Tecnoacademia",equipo:"Dinamizador Tecnoacademia · líder semillero de investigación · instructores STEM · líderes de laboratorios CDT · coord. académico",
+aliados:"Instituciones Educativas del territorio · Secretarías de Educación · SENNOVA · MinCiencias · MinEducación · IES aliadas · empresas del sector · HUB de innovación CTM"},
+
+{n:12,v:"inv",ys:2030,ye:2031,st:"pre",
+name:"Inscripción oficial y reconocimiento del CDT ante MinCiencias",
+obj:"Formalizar el CDT como actor del SNCTI y culminar su reconocimiento oficial, asegurando trazabilidad jurídica, técnica y documental conforme al marco vigente.",
+acts:["(Preparación) Identificar ruta institucional, jurídica y técnica","Diseñar matriz de requisitos, soportes y responsables","Establecer sistema de documentación técnica","Definir indicadores de actividades y resultados de I+D+i","Revisar brechas normativas y documentales"],
+ents:["Ruta institucional documentada","Matriz de requisitos con responsables"],
+resp:"Dinamizador I+D",equipo:"Coord. formación · I+D",
+aliados:"MinCiencias · Dirección Regional · Dirección General SENA · asesores jurídicos · IES aliadas"},
+];
+
+// Estado dinámico (desde Google Sheets)
+const live={};
+DATA.forEach(d=>{
+  live[d.n]={sem:"n",ind:"",avances:"",quien:"",fecha:""};
+});
+
+let curF="all";
+// Pending edit state
+let pendingN=null, pendingField=null, pendingVal=null;
+
+// ── Google Sheets ─────────────────────────────────────────────────────────────
+function setStatus(s,msg){
+  const dot=document.getElementById("sdot");
+  const txt=document.getElementById("stxt");
+  dot.className="sdot "+s;
+  txt.textContent=msg;
+  txt.style.color=s==="ok"?"#639922":s==="err"?"#E24B4A":"#888";
+}
+
+function fetchData(){
+  if(!SCRIPT_URL||SCRIPT_URL.includes("PEGAR")){
+    setStatus("err","⚠ Configure la URL del Web App en el archivo HTML (línea SCRIPT_URL)");
+    return;
+  }
+  setStatus("loading","Sincronizando con Google Sheets…");
+  fetch(SCRIPT_URL+"?t="+Date.now())
+    .then(r=>r.json())
+    .then(json=>{
+      if(!json.ok) throw new Error(json.error);
+      json.data.forEach(row=>{
+        const n=parseInt(row.n);
+        if(!n||!live[n]) return;
+        live[n].sem    = row.semaforo||"n";
+        live[n].ind    = row.indicador||"";
+        live[n].avances= row.avances||"";
+        live[n].quien  = row.actualizadoPor||"";
+        live[n].fecha  = row.ultimaActualizacion||"";
+      });
+      const now=new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+      document.getElementById("ssync").textContent="Última sync: "+now;
+      setStatus("ok","Conectado · Google Sheets");
+      renderAll();
+    })
+    .catch(()=>setStatus("err","Sin conexión · Mostrando datos locales"));
+}
+
+function postUpdate(n,payload){
+  if(!SCRIPT_URL||SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycby3UFNRvk7cWV-mCAcWp6Qr9JXGCCL-7h_u5bnA5DAXZX5fF94vL82Hu8WTRw6vevJCiQ/exec")) return Promise.resolve();
+  return fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify({n,...payload}),
+  }).then(r=>r.json());
+}
+
+// ── Who modal ─────────────────────────────────────────────────────────────────
+function askWho(n, field, val, subtext){
+  pendingN=n; pendingField=field; pendingVal=val;
+  document.getElementById("whoSub").textContent=subtext;
+  document.getElementById("whoInput").value=live[n].quien||"";
+  document.getElementById("whoModal").classList.add("open");
+  setTimeout(()=>document.getElementById("whoInput").focus(),80);
+}
+
+function cancelWho(){
+  document.getElementById("whoModal").classList.remove("open");
+  pendingN=pendingField=pendingVal=null;
+}
+
+function confirmWho(){
+  const quien=document.getElementById("whoInput").value.trim();
+  if(!quien){alert("Por favor ingrese su nombre o rol.");return;}
+  document.getElementById("whoModal").classList.remove("open");
+  const n=pendingN, field=pendingField, val=pendingVal;
+  pendingN=pendingField=pendingVal=null;
+
+  live[n].quien=quien;
+  live[n].fecha=new Date().toISOString();
+  if(field==="sem") live[n].sem=val;
+  if(field==="ind") live[n].ind=val;
+  if(field==="avances") live[n].avances=val;
+
+  renderAll();
+
+  const payload={actualizadoPor:quien};
+  if(field==="sem")     payload.semaforo=val;
+  if(field==="ind")     payload.indicador=val;
+  if(field==="avances") payload.avances=val;
+
+  postUpdate(n,payload)
+    .then(r=>{ if(r&&!r.ok) throw new Error(r.error); setStatus("ok","Guardado · "+quien); })
+    .catch(()=>setStatus("err","Error al guardar — cambio aplicado localmente"));
+}
+
+document.getElementById("whoModal").addEventListener("click",function(e){
+  if(e.target===this) cancelWho();
+});
+document.getElementById("whoInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter") confirmWho();
+});
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+function fmtFecha(iso){
+  if(!iso) return "";
+  try{
+    const d=new Date(iso);
+    return d.toLocaleDateString("es-CO",{day:"2-digit",month:"short"})+" "+
+           d.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+  }catch(e){return iso;}
+}
+
+function semP(){
+  const t=DATA.length;
+  return{t,
+    c:DATA.filter(d=>live[d.n].sem==="c").length,
+    i:DATA.filter(d=>live[d.n].sem==="i").length,
+    r:DATA.filter(d=>live[d.n].sem==="r").length,
+    enc:DATA.filter(d=>d.st==="enc").length,
+    pre:DATA.filter(d=>d.st==="pre").length,
+  };
+}
+
+function renderMets(){
+  const p=semP();
+  document.getElementById("mets").innerHTML=`
+    <div class="met"><div class="met-v">${p.t}</div><div class="met-l">Total macroproyectos</div></div>
+    <div class="met"><div class="met-v" style="color:#639922">${p.enc}</div><div class="met-l"><span class="dot" style="background:#639922"></span>En curso 2026</div></div>
+    <div class="met"><div class="met-v" style="color:#EF9F27">${p.pre}</div><div class="met-l"><span class="dot" style="background:#EF9F27"></span>En preparación</div></div>
+    <div class="met"><div class="met-v" style="color:#639922">${p.c}</div><div class="met-l"><span class="dot" style="background:#639922"></span>Completados</div></div>
+    <div class="met"><div class="met-v" style="color:#E24B4A">${p.r}</div><div class="met-l"><span class="dot" style="background:#E24B4A"></span>En riesgo</div></div>`;
+}
+
+function buildVcards(){
+  document.getElementById("vcards").innerHTML=Object.entries(VARS).map(([vk,v])=>`
+    <div class="vc" id="vc-${vk}">
+      <div class="vc-icon">${v.icon}</div>
+      <div class="vc-name">${v.label}</div>
+      <div class="vc-cnt" id="vcc-${vk}"></div>
+      <div class="pbw"><div class="pb" id="vpb-${vk}" style="background:${v.color};width:0%"></div></div>
+      <div class="pbl" id="vpl-${vk}">0% completado</div>
+    </div>`).join("");
+}
+
+function renderVcards(){
+  Object.keys(VARS).forEach(vk=>{
+    const items=DATA.filter(d=>d.v===vk);
+    const done=items.filter(d=>live[d.n].sem==="c").length;
+    const risk=items.filter(d=>live[d.n].sem==="r").length;
+    const pct=items.length?Math.round((done/items.length)*100):0;
+    const col=risk>0?"#E24B4A":done===items.length&&done>0?"#639922":VARS[vk].color;
+    document.getElementById("vcc-"+vk).textContent=`${items.length} proyectos · ${done} completados`;
+    document.getElementById("vpb-"+vk).style.cssText=`width:${pct}%;background:${col}`;
+    document.getElementById("vpl-"+vk).innerHTML=`${pct}%${risk>0?` · <span style="color:#791F1F">${risk} en riesgo</span>`:""}`;
+  });
+}
+
+function renderTimeline(){
+  document.getElementById("tly").innerHTML=YEARS.map(y=>`<span>${y}</span>`).join("");
+  document.getElementById("tlrows").innerHTML=DATA.map(d=>{
+    const left=Math.round(((d.ys-YS)/YR)*100);
+    const width=Math.max(4,Math.round(((d.ye-d.ys)/YR)*100));
+    const s=live[d.n].sem;
+    const base=d.st==="enc"?"#639922":"#EF9F27";
+    const col=s==="c"?"#639922":s==="r"?"#E24B4A":s==="i"?"#EF9F27":base;
+    const short=d.name.length>28?d.name.substring(0,26)+"…":d.name;
+    return `<div class="tlr">
+      <div class="tll" title="${d.name}">${d.n}. ${short}</div>
+      <div class="tlt">
+        <div class="tlb" id="tlb-${d.n}" style="left:${left}%;width:${width}%;background:${col};opacity:.82">
+          <span class="tld"></span>${d.ys}–${d.ye}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function stLbl(s){return s==="enc"?"En curso":"En preparación"}
+function vLbl(v){return{inv:"Innovación",dis:"Diseño y Desarrollo",mad:"Madera y materiales"}[v]||v}
+
+function renderCards(f){
+  const filtered=DATA.filter(d=>{
+    if(f==="all") return true;
+    if(f==="enc") return d.st==="enc";
+    if(f==="pre") return d.st==="pre";
+    return d.v===f;
+  });
+  const g=document.getElementById("grid");
+  if(!filtered.length){g.innerHTML=`<div class="empty">Sin resultados para este filtro.</div>`;return;}
+
+  g.innerHTML=filtered.map(d=>{
+    const L=live[d.n];
+    const s=L.sem;
+    const meta=L.quien&&L.fecha?`${L.quien} · ${fmtFecha(L.fecha)}`:"";
+    const indVal=L.ind||"";
+    const avVal=L.avances||"";
+
+    return `<div class="card" id="card-${d.n}">
+      <div class="card-top">
+        <div class="card-n">Macroproyecto ${d.n}${d.n===11?' <span style="background:#1E7A3E;color:#fff;font-size:8px;padding:1px 5px;border-radius:4px;font-weight:600;margin-left:4px">NUEVO</span>':""}</div>
+        <div class="card-name">${d.name}</div>
+        <div class="badges">
+          <span class="badge b-${d.st==="enc"?"enc":"pre"}">${stLbl(d.st)}</span>
+          <span class="badge b-${d.v}">${vLbl(d.v)}</span>
+          <span class="badge b-yr">${d.ys}–${d.ye}</span>
+        </div>
+      </div>
+
+      <div class="semrow">
+        <div>
+          <div style="font-size:10px;color:#999;margin-bottom:${meta?'2px':'0'}">Estado de avance</div>
+          ${meta?`<div class="semeta">${meta}</div>`:""}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="smbadge ${SBDG[s]}" id="sl-${d.n}">${SL[s]}</span>
+          <div class="sembtns">
+            ${SS.map(st=>`<div class="sembtn ${SBG[st]}${s===st?" sel":""}" title="${SL[st]}" onclick="clickSem(${d.n},'${st}')"></div>`).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="chead" onclick="toggleCard(${d.n})">
+        <span class="chead-l">Ver detalle completo</span>
+        <span class="chev" id="ch-${d.n}">▶</span>
+      </div>
+
+      <div class="cbody" id="body-${d.n}">
+        <div class="section">
+          <div class="slbl">Objetivo estratégico</div>
+          <div class="obj">${d.obj}</div>
+        </div>
+        <div class="section" style="padding-bottom:10px">
+          <table class="ae-table">
+            <thead>
+              <tr>
+                <th>Actividades 2026</th>
+                <th>Entregables 2026</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Array.from({length:Math.max(d.acts.length,d.ents.length)},(_,i)=>`
+              <tr>
+                <td>${d.acts[i]!==undefined?`<span class="ae-n">${i+1}</span>${d.acts[i]}`:"—"}</td>
+                <td>${d.ents[i]!==undefined?`<span class="ae-arr">→</span>${d.ents[i]}`:"—"}</td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="section" style="padding-bottom:10px">
+          <div class="mgrid">
+            <div class="mbox"><div class="mkey">Responsable</div><div class="mval">${d.resp}</div></div>
+            <div class="mbox"><div class="mkey">Equipo</div><div class="mval" style="font-size:10px">${d.equipo}</div></div>
+          </div>
+          <div class="mbox" style="margin-top:6px"><div class="mkey">Aliados clave</div><div class="mval" style="font-size:10px">${d.aliados}</div></div>
+        </div>
+
+        <!-- Zona editable -->
+        <div class="edit-zone">
+          <div class="edit-hdr">
+            <span class="edit-tag">★ Campos editables</span>
+            <span class="edit-note">Solo líderes del macroproyecto pueden modificar estos campos</span>
+          </div>
+
+          <div class="efield">
+            <div class="efield-lbl">Indicador y Meta 2026</div>
+            <div id="ind-view-${d.n}"
+                 class="efield-view${!indVal?" empty":""}"
+                 onclick="startEdit(${d.n},'ind')">${indVal||"Clic para ingresar o actualizar indicadores y metas…"}</div>
+            <div id="ind-edit-${d.n}" style="display:none">
+              <textarea class="efield-edit" id="ind-ta-${d.n}">${indVal}</textarea>
+              <div class="eactions">
+                <button class="esave" onclick="saveField(${d.n},'ind')">Guardar</button>
+                <button class="ecancel" onclick="cancelEdit(${d.n},'ind')">Cancelar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="efield" style="margin-bottom:0">
+            <div class="efield-lbl">Avances del proyecto</div>
+            <div id="av-view-${d.n}"
+                 class="efield-view${!avVal?" empty":""}"
+                 onclick="startEdit(${d.n},'avances')">${avVal||"Clic para registrar avances, novedades o bloqueos…"}</div>
+            <div id="av-edit-${d.n}" style="display:none">
+              <textarea class="efield-edit" id="av-ta-${d.n}">${avVal}</textarea>
+              <div class="eactions">
+                <button class="esave" onclick="saveField(${d.n},'avances')">Guardar</button>
+                <button class="ecancel" onclick="cancelEdit(${d.n},'avances')">Cancelar</button>
+              </div>
+            </div>
+            ${meta?`<div class="emeta">Última actualización: ${meta}</div>`:""}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function startEdit(n, field){
+  const prefix=field==="ind"?"ind":"av";
+  document.getElementById(`${prefix}-view-${n}`).style.display="none";
+  document.getElementById(`${prefix}-edit-${n}`).style.display="block";
+  document.getElementById(`${prefix}-ta-${n}`).focus();
+}
+
+function cancelEdit(n, field){
+  const prefix=field==="ind"?"ind":"av";
+  document.getElementById(`${prefix}-view-${n}`).style.display="";
+  document.getElementById(`${prefix}-edit-${n}`).style.display="none";
+}
+
+function saveField(n, field){
+  const prefix=field==="ind"?"ind":"av";
+  const val=document.getElementById(`${prefix}-ta-${n}`).value.trim();
+  const subtext=`Macroproyecto ${n} · Campo: ${field==="ind"?"Indicador y Meta":"Avances del proyecto"}`;
+  cancelEdit(n,field);
+  askWho(n, field, val, subtext);
+}
+
+function clickSem(n, state){
+  if(live[n].sem===state) return;
+  askWho(n,"sem",state,`Macroproyecto ${n} · Cambio de semáforo: ${SL[live[n].sem]} → ${SL[state]}`);
+}
+
+function toggleCard(n){
+  const b=document.getElementById("body-"+n);
+  const c=document.getElementById("ch-"+n);
+  if(!b||!c) return;
+  b.classList.toggle("open");
+  c.style.transform=b.classList.contains("open")?"rotate(90deg)":"";
+}
+
+function setF(el,f){
+  curF=f;
+  document.querySelectorAll(".pill").forEach(p=>{
+    const pf=p.dataset.f;
+    p.className="pill"+(pf===f?" p"+(f==="all"?"a":f==="enc"?"e":f==="pre"?"p":f==="inv"?"i":f==="dis"?"d":"m"):"");
+  });
+  renderCards(f);
+}
+
+function renderAll(){
+  renderMets();
+  renderVcards();
+  renderTimeline();
+  renderCards(curF);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildVcards();
+renderAll();
+fetchData();
+setInterval(fetchData, 90000); // auto-sync cada 90 seg
+</script>
+</body>
+</html>
