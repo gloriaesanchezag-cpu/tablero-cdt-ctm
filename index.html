@@ -226,29 +226,15 @@ footer{margin-top:2rem;text-align:center;font-size:10px;color:#bbb;padding-top:1
   <span class="leg-i"><span class="leg-d" style="background:#639922"></span>Completado</span>
   <span class="leg-i"><span class="leg-d" style="background:#E24B4A"></span>En riesgo</span>
   <span style="margin-left:5px;padding-left:10px;border-left:0.5px solid #ddd"></span>
-  <span class="leg-i"><span style="display:inline-block;width:14px;height:3px;background:#F9A825;border-radius:1px"></span>Campos editables por líderes</span>
+  <span class="leg-i"><span style="display:inline-block;width:14px;height:3px;background:#F9A825;border-radius:1px"></span>Información registrada por el líder en Google Sheets</span>
 </div>
 
-<footer>SENA · Centro Tecnológico del Mobiliario · Equipo Previos · 2026 — Cambios guardados automáticamente en Google Sheets</footer>
-</div>
-
-<!-- Who-are-you modal -->
-<div class="modal-bg" id="whoModal">
-  <div class="modal">
-    <div class="modal-t">¿Quién realiza este cambio?</div>
-    <div class="modal-s" id="whoSub"></div>
-    <label>Nombre o rol</label>
-    <input type="text" id="whoInput" placeholder="Ej: Líder FABLAB · Carlos Gómez">
-    <div class="mbtns">
-      <button class="mbtn-cn" onclick="cancelWho()">Cancelar</button>
-      <button class="mbtn-ok" onclick="confirmWho()">Confirmar y guardar</button>
-    </div>
-  </div>
+<footer>SENA · Centro Tecnológico del Mobiliario · Equipo Previos · 2026 — Tablero de solo lectura · Se actualiza automáticamente cada 60 segundos desde Google Sheets</footer>
 </div>
 
 <script>
 // ─── ⚠️  CONFIGURACIÓN — reemplazar con la URL real del Web App ───────────────
-const SCRIPT_URL ="https://script.google.com/macros/s/AKfycby3UFNRvk7cWV-mCAcWp6Qr9JXGCCL-7h_u5bnA5DAXZX5fF94vL82Hu8WTRw6vevJCiQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXCvzJZ1EULiqR0ZcIX4X-M9Iwv9a6ax6PHwWfATWvv0BIb6kV8Cb73N0z8o_tmfo9XQ/exec";
 // ──────────────────────────────────────────────────────────────────────────────
 
 const YEARS=[2026,2027,2028,2029,2030,2031];
@@ -371,8 +357,6 @@ DATA.forEach(d=>{
 });
 
 let curF="all";
-// Pending edit state
-let pendingN=null, pendingField=null, pendingVal=null;
 
 // ── Google Sheets ─────────────────────────────────────────────────────────────
 function setStatus(s,msg){
@@ -409,60 +393,6 @@ function fetchData(){
     })
     .catch(()=>setStatus("err","Sin conexión · Mostrando datos locales"));
 }
-
-function postUpdate(n,payload){
-  if(!SCRIPT_URL||SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycby3UFNRvk7cWV-mCAcWp6Qr9JXGCCL-7h_u5bnA5DAXZX5fF94vL82Hu8WTRw6vevJCiQ/exec")) return Promise.resolve();
-  return fetch(SCRIPT_URL,{
-    method:"POST",
-    body:JSON.stringify({n,...payload}),
-  }).then(r=>r.json());
-}
-
-// ── Who modal ─────────────────────────────────────────────────────────────────
-function askWho(n, field, val, subtext){
-  pendingN=n; pendingField=field; pendingVal=val;
-  document.getElementById("whoSub").textContent=subtext;
-  document.getElementById("whoInput").value=live[n].quien||"";
-  document.getElementById("whoModal").classList.add("open");
-  setTimeout(()=>document.getElementById("whoInput").focus(),80);
-}
-
-function cancelWho(){
-  document.getElementById("whoModal").classList.remove("open");
-  pendingN=pendingField=pendingVal=null;
-}
-
-function confirmWho(){
-  const quien=document.getElementById("whoInput").value.trim();
-  if(!quien){alert("Por favor ingrese su nombre o rol.");return;}
-  document.getElementById("whoModal").classList.remove("open");
-  const n=pendingN, field=pendingField, val=pendingVal;
-  pendingN=pendingField=pendingVal=null;
-
-  live[n].quien=quien;
-  live[n].fecha=new Date().toISOString();
-  if(field==="sem") live[n].sem=val;
-  if(field==="ind") live[n].ind=val;
-  if(field==="avances") live[n].avances=val;
-
-  renderAll();
-
-  const payload={actualizadoPor:quien};
-  if(field==="sem")     payload.semaforo=val;
-  if(field==="ind")     payload.indicador=val;
-  if(field==="avances") payload.avances=val;
-
-  postUpdate(n,payload)
-    .then(r=>{ if(r&&!r.ok) throw new Error(r.error); setStatus("ok","Guardado · "+quien); })
-    .catch(()=>setStatus("err","Error al guardar — cambio aplicado localmente"));
-}
-
-document.getElementById("whoModal").addEventListener("click",function(e){
-  if(e.target===this) cancelWho();
-});
-document.getElementById("whoInput").addEventListener("keydown",function(e){
-  if(e.key==="Enter") confirmWho();
-});
 
 // ── Render helpers ────────────────────────────────────────────────────────────
 function fmtFecha(iso){
@@ -578,7 +508,7 @@ function renderCards(f){
         <div style="display:flex;align-items:center;gap:8px">
           <span class="smbadge ${SBDG[s]}" id="sl-${d.n}">${SL[s]}</span>
           <div class="sembtns">
-            ${SS.map(st=>`<div class="sembtn ${SBG[st]}${s===st?" sel":""}" title="${SL[st]}" onclick="clickSem(${d.n},'${st}')"></div>`).join("")}
+            ${SS.map(st=>`<div class="sembtn ${SBG[st]}${s===st?" sel":""}" title="${SL[st]}" style="cursor:default"></div>`).join("")}
           </div>
         </div>
       </div>
@@ -618,71 +548,25 @@ function renderCards(f){
           <div class="mbox" style="margin-top:6px"><div class="mkey">Aliados clave</div><div class="mval" style="font-size:10px">${d.aliados}</div></div>
         </div>
 
-        <!-- Zona editable -->
+        <!-- Zona de solo lectura — los líderes editan directamente en Google Sheets -->
         <div class="edit-zone">
           <div class="edit-hdr">
-            <span class="edit-tag">★ Campos editables</span>
-            <span class="edit-note">Solo líderes del macroproyecto pueden modificar estos campos</span>
+            <span class="edit-tag">★ Información del líder</span>
+            <span class="edit-note">Actualizado desde Google Sheets · Se sincroniza cada 60 segundos</span>
           </div>
-
           <div class="efield">
             <div class="efield-lbl">Indicador y Meta 2026</div>
-            <div id="ind-view-${d.n}"
-                 class="efield-view${!indVal?" empty":""}"
-                 onclick="startEdit(${d.n},'ind')">${indVal||"Clic para ingresar o actualizar indicadores y metas…"}</div>
-            <div id="ind-edit-${d.n}" style="display:none">
-              <textarea class="efield-edit" id="ind-ta-${d.n}">${indVal}</textarea>
-              <div class="eactions">
-                <button class="esave" onclick="saveField(${d.n},'ind')">Guardar</button>
-                <button class="ecancel" onclick="cancelEdit(${d.n},'ind')">Cancelar</button>
-              </div>
-            </div>
+            <div class="efield-view${!indVal?" empty":""}" style="cursor:default">${indVal||"El líder aún no ha registrado indicadores y metas."}</div>
           </div>
-
           <div class="efield" style="margin-bottom:0">
             <div class="efield-lbl">Avances del proyecto</div>
-            <div id="av-view-${d.n}"
-                 class="efield-view${!avVal?" empty":""}"
-                 onclick="startEdit(${d.n},'avances')">${avVal||"Clic para registrar avances, novedades o bloqueos…"}</div>
-            <div id="av-edit-${d.n}" style="display:none">
-              <textarea class="efield-edit" id="av-ta-${d.n}">${avVal}</textarea>
-              <div class="eactions">
-                <button class="esave" onclick="saveField(${d.n},'avances')">Guardar</button>
-                <button class="ecancel" onclick="cancelEdit(${d.n},'avances')">Cancelar</button>
-              </div>
-            </div>
+            <div class="efield-view${!avVal?" empty":""}" style="cursor:default">${avVal||"El líder aún no ha registrado avances."}</div>
             ${meta?`<div class="emeta">Última actualización: ${meta}</div>`:""}
           </div>
         </div>
       </div>
     </div>`;
   }).join("");
-}
-
-function startEdit(n, field){
-  const prefix=field==="ind"?"ind":"av";
-  document.getElementById(`${prefix}-view-${n}`).style.display="none";
-  document.getElementById(`${prefix}-edit-${n}`).style.display="block";
-  document.getElementById(`${prefix}-ta-${n}`).focus();
-}
-
-function cancelEdit(n, field){
-  const prefix=field==="ind"?"ind":"av";
-  document.getElementById(`${prefix}-view-${n}`).style.display="";
-  document.getElementById(`${prefix}-edit-${n}`).style.display="none";
-}
-
-function saveField(n, field){
-  const prefix=field==="ind"?"ind":"av";
-  const val=document.getElementById(`${prefix}-ta-${n}`).value.trim();
-  const subtext=`Macroproyecto ${n} · Campo: ${field==="ind"?"Indicador y Meta":"Avances del proyecto"}`;
-  cancelEdit(n,field);
-  askWho(n, field, val, subtext);
-}
-
-function clickSem(n, state){
-  if(live[n].sem===state) return;
-  askWho(n,"sem",state,`Macroproyecto ${n} · Cambio de semáforo: ${SL[live[n].sem]} → ${SL[state]}`);
 }
 
 function toggleCard(n){
@@ -713,7 +597,7 @@ function renderAll(){
 buildVcards();
 renderAll();
 fetchData();
-setInterval(fetchData, 90000); // auto-sync cada 90 seg
+setInterval(fetchData, 60000); // auto-sync cada 90 seg
 </script>
 </body>
 </html>
