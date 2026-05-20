@@ -175,7 +175,7 @@ footer{margin-top:2rem;text-align:center;font-size:10px;color:#bbb;padding-top:1
   <div style="flex:1">
     <div class="hdr-title">Centro de Desarrollo Tecnológico (CDT) · CTM — Tablero ejecutivo 2026</div>
     <div class="hdr-sub">12 macroproyectos · Horizonte 2026–2031
-      <span>★ Indicador y Meta · Avances: editables por los líderes</span>
+      <span>★ Semáforo · Indicador y Meta · Avances: editables por los líderes en Google Sheets</span>
     </div>
   </div>
 </div>
@@ -226,15 +226,15 @@ footer{margin-top:2rem;text-align:center;font-size:10px;color:#bbb;padding-top:1
   <span class="leg-i"><span class="leg-d" style="background:#639922"></span>Completado</span>
   <span class="leg-i"><span class="leg-d" style="background:#E24B4A"></span>En riesgo</span>
   <span style="margin-left:5px;padding-left:10px;border-left:0.5px solid #ddd"></span>
-  <span class="leg-i"><span style="display:inline-block;width:14px;height:3px;background:#F9A825;border-radius:1px"></span>Información registrada por el líder en Google Sheets</span>
+  <span class="leg-i"><span style="display:inline-block;width:14px;height:3px;background:#F9A825;border-radius:1px"></span>Semáforo · Indicador · Avances: editables por el líder en Google Sheets</span>
 </div>
 
-<footer>SENA · Centro Tecnológico del Mobiliario · Equipo Previos · 2026 — Tablero de solo lectura · Se actualiza automáticamente cada 60 segundos desde Google Sheets</footer>
+<footer>SENA · Centro Tecnológico del Mobiliario · Equipo Previos · 2026 — Tablero de consulta · Semáforo, indicadores y avances son actualizados por los líderes en Google Sheets · Sync cada 60 seg</footer>
 </div>
 
 <script>
 // ─── ⚠️  CONFIGURACIÓN — reemplazar con la URL real del Web App ───────────────
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXCvzJZ1EULiqR0ZcIX4X-M9Iwv9a6ax6PHwWfATWvv0BIb6kV8Cb73N0z8o_tmfo9XQ/exec";
+const SCRIPT_URL = "PEGAR_AQUI_LA_URL_DEL_WEB_APP";
 // ──────────────────────────────────────────────────────────────────────────────
 
 const YEARS=[2026,2027,2028,2029,2030,2031];
@@ -551,8 +551,8 @@ function renderCards(f){
         <!-- Zona de solo lectura — los líderes editan directamente en Google Sheets -->
         <div class="edit-zone">
           <div class="edit-hdr">
-            <span class="edit-tag">★ Información del líder</span>
-            <span class="edit-note">Actualizado desde Google Sheets · Se sincroniza cada 60 segundos</span>
+            <span class="edit-tag">★ Actualizado por el líder</span>
+            <span class="edit-note">Semáforo · Indicador · Avances — editados en Google Sheets · Sync cada 60 seg</span>
           </div>
           <div class="efield">
             <div class="efield-lbl">Indicador y Meta 2026</div>
